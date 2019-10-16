@@ -1,0 +1,27 @@
+/*{
+	"type": "action",
+	"targets": ["omniplan"],
+	"author": "Action Author",
+	"identifier": "com.youOrCompany.actionName",
+	"version": "1.0",
+	"description": "Action Description",
+	"label": "Menu Item Title",
+	"shortLabel": "Toolbar Item Title"
+}*/
+var _ = function(){
+	var action = new PlugIn.Action(function(selection, sender){
+		// action code
+		// selection options: project, tasks, resources
+		selection.tasks.forEach(function(task){
+			<# PUT YOUR PROCESSING CODE HERE #>
+		})
+	});
+
+	action.validate = function(selection, sender){
+		// validation code
+		// selection options: project, tasks, resources
+		return (selection.tasks.length > 0)
+	};
+	
+	return action;
+}();
