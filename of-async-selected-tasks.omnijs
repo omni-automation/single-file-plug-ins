@@ -1,0 +1,62 @@
+/*{
+	"type": "action",
+	"targets": ["omnifocus"],
+	"author": "Otto Automator",
+	"identifier": "com.omnigroup.omni-automation.of.process-items-sequentially",
+	"version": "1.0",
+	"description": "Implementing a URL.call() as a promise within a loop of selected objects.",
+	"label": "Tasks to Outline",
+	"shortLabel": "Tasks to Outline"
+}*/
+
+// handler replacing the URL call() function
+URL.prototype.promiseCall = function(success, failure) {
+	return new Promise((resolve, reject) => {
+		this.call((successResult) => {
+			resolve(successResult);
+		}, (failureResult) => {
+			console.log("ERROR: " + failureResult);
+			reject(new Error(failureResult));
+		});
+	});
+};
+
+(() => {
+	var action = new PlugIn.Action((selection, sender) => {
+		
+		// an asynchronous function for processing objects
+		async function processObjects(objs){
+			for (let i = 0; i < objs.length; i++){
+				// get properties of object
+				obj = objs[i]
+				objName = obj.name
+				console.log(objName)
+				// the function (as string) to be executed by the targeted app
+				var functionString = `function makeNewOOEntry(){
+					row = rootItem.addChild()
+					row.topic = \"${objName}\"
+					rowID = row.identifier
+					console.log(row.topic + ": " + rowID)
+					return "omnioutliner:///open?row=" + rowID
+				}`
+				// replace placeholders with content of variables
+				functionString = functionString.toString() + '\n' + 'makeNewOOEntry()'
+				// create an encoded call-back URL containing the function
+				var scriptURL = URL.tellScript("omnioutliner", functionString)
+				// execute the encoded URL using the asynchronous replacement call
+				let result = await scriptURL.promiseCall()
+				// add script result to the note field of the object
+				obj.note = (obj.note != "") ? obj.note + "\n" + result : result
+				console.log(result);
+			}
+		};
+
+		processObjects(selection.tasks);
+	});
+
+	action.validate = (selection, sender) => {
+		return (selection.tasks.length > 0)
+	};
+	
+	return action;
+})();
